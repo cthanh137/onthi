@@ -82,4 +82,60 @@ player.CharacterAdded:Connect(function(newChar)
     character = newChar
   
 end)
+-- Anti-AFK Teleport - Bản tổng hợp cho executor cũ
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
+
+-- 1. Hook Teleport trong LocalPlayer
+pcall(function()
+    local oldTeleport = LocalPlayer.Teleport
+    LocalPlayer.Teleport = function(placeId)
+        if placeId == game.PlaceId then
+            print("✅ Chặn teleport!")
+            return nil
+        end
+        return oldTeleport(placeId)
+    end
+end)
+
+-- 2. Hook TeleportService (cách cũ)
+pcall(function()
+    local TeleportService = game:GetService("TeleportService")
+    local old = TeleportService.Teleport
+    TeleportService.Teleport = function(placeId, player)
+        if placeId == game.PlaceId then
+            print("✅ Chặn teleport!")
+            return nil
+        end
+        return old(placeId, player)
+    end
+end)
+
+-- 3. Đóng băng thời gian (không bao giờ AFK)
+pcall(function()
+    local oldClock = os.clock
+    os.clock = function()
+        return 0
+    end
+end)
+
+-- 4. Tự động tương tác
+task.spawn(function()
+    local UserInputService = game:GetService("UserInputService")
+    while task.wait(180) do -- 3 phút
+        pcall(function()
+            UserInputService.InputBegan:Fire({
+                UserInputType = Enum.UserInputType.MouseButton1
+            })
+            print("🔄 Đã gửi tương tác")
+        end)
+    end
+end)
+
+-- 5. Giữ script chạy
+
+
+while task.wait(999999) do
+    -- Luôn chạy
+end
